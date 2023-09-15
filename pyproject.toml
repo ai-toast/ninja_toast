@@ -1,0 +1,55 @@
+[tool.poetry]
+name = "ninja_service"
+version = "3.0.0"
+description = "serverless for ninja order system"
+authors = ["Dr. Myfull Name"]
+classifiers=[
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Natural Language :: English",
+    "Programming Language :: Python :: 3.11",
+]
+repository="https://github.com/"
+readme = "README.md"
+keywords = ["serverless"]
+license = "MIT-0"
+
+[tool.poetry.dependencies]
+python = "^3.11.0"
+pydantic = {version = "^2.0.3"}
+email-validator = {version = "*"}
+aws-lambda-powertools =  {extras = ["tracer"],version = "^2.20.0"}
+mypy-boto3-dynamodb = "*"
+cachetools = "*"
+boto3 = "^1.26.125"
+aws-lambda-env-modeler = "*"
+
+[tool.poetry.dev-dependencies]
+# CDK
+service-cdk = {path = "cdk", develop = true}
+aws-cdk-lib = ">=2.75.0"
+constructs = ">=10.0.0"
+cdk-nag = ">2.0.0"
+"aws-cdk.aws-lambda-python-alpha" = "^2.75.0-alpha.0"
+# DEV
+pytest = "*"
+pytest-mock = "*"
+pycodestyle = "*"
+pytest-cov = "*"
+pytest-html = "*"
+python-dateutil = "*"
+python-dotenv = "*"
+GitPython = "*"
+yapf = "*"
+radon = "*"
+xenon = "*"
+pre-commit = "*"
+flake8 = "*"
+isort = "*"
+mkdocs-material = "*"
+mkdocs-git-revision-date-plugin = "*"
+types-cachetools = "*"
+mypy = "*"
+types-requests = "*"
+toml = "*"
