@@ -1,8 +1,6 @@
 from service.dal.db_handler import DalHandler
 from service.dal.dynamo_dal_handler import get_dal_handler
 from service.dal.schemas.db import OrderEntry
-from service.handlers.schemas.dynamic_configuration import FeatureFlagsNames
-from service.handlers.utils.dynamic_configuration import get_dynamic_configuration_store
 from service.handlers.utils.observability import logger, tracer
 from service.schemas.input import GetOrderRequest
 from service.schemas.output import GetOrderOutput

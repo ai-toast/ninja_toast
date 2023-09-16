@@ -10,6 +10,7 @@ from cdk.service.api_construct import ApiConstruct
 from cdk.service.configuration.configuration_construct import ConfigurationStore
 from cdk.service.constants import CONFIGURATION_NAME, ENVIRONMENT, SERVICE_NAME
 
+
 def get_username() -> str:
     try:
         return os.getlogin().replace('.', '-')

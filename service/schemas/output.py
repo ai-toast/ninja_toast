@@ -17,8 +17,10 @@ class CreateOrderOutput(BaseModel):
             raise ValueError(str(exc))
         return v
 
+
 class GetOrderOutput(CreateOrderOutput):
-    ... #pragma: no cover
+    ...  # pragma: no cover
+
 
 class DeleteOrderOutput(CreateOrderOutput):
-    ... #pragma: no cover
+    ...  # pragma: no cover

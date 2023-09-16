@@ -1,3 +1,4 @@
+import json
 import uuid
 from functools import lru_cache
 
@@ -9,7 +10,7 @@ from mypy_boto3_dynamodb.service_resource import Table
 from pydantic import ValidationError
 
 from service.dal.db_handler import DalHandler
-from service.dal.schemas.db import OrderEntry
+from service.dal.schemas.db import OrderBase, OrderEntry
 from service.handlers.utils.observability import logger, tracer
 from service.schemas.exceptions import InternalServerException
 
@@ -46,11 +47,11 @@ class DynamoDalHandler(DalHandler):
     def delete_order_in_db(self, order_id: str) -> OrderEntry:
         logger.info('trying to delete order', extra={'order_id': order_id})
         try:
-            entry = OrderEntry(order_id=order_id)
+            entry = OrderBase(order_id=order_id)
             logger.info('opening connection to dynamodb table', extra={'table_name': self.table_name})
             table: Table = self._get_db_handler()
-            response = table.delete_item(Item=entry.model_dump())
-            rec = OrderEntry.model_validate_json(response['Attributes'])
+            response = table.delete_item(Key=entry.model_dump())
+            rec = OrderEntry.model_validate_json(json.dumps(response['Attributes']))
         except (ClientError, ValidationError) as exc:
             error_msg = 'failed to delete order'
             logger.exception(error_msg, extra={'exception': str(exc), 'order_id': order_id})
@@ -63,18 +64,22 @@ class DynamoDalHandler(DalHandler):
     def get_order_in_db(self, order_id: str) -> OrderEntry:
         logger.info('trying to retrieve order', extra={'order_id': order_id})
         try:
-            entry = OrderEntry(order_id=order_id)
+            entry = OrderBase(order_id=order_id)
             logger.info('opening connection to dynamodb table', extra={'table_name': self.table_name})
             table: Table = self._get_db_handler()
-            response = table.get_item(Item=entry.model_dump())
-            rec = OrderEntry.model_validate_json(response['Item'])
+            response = table.get_item(Key=entry.model_dump())
+            rec = OrderEntry.model_validate_json(json.dumps(response['Item']))
 
         except (ClientError, ValidationError) as exc:
             error_msg = 'failed to get order'
             logger.exception(error_msg, extra={'exception': str(exc), 'order_id': order_id})
             raise InternalServerException(error_msg) from exc
 
-        logger.info('finished get order', extra={'order_id': rec.order_id, 'order_item_count': rec.order_item_count, 'customer_name': rec.customer_name})
+        logger.info('finished get order', extra={
+            'order_id': rec.order_id,
+            'order_item_count': rec.order_item_count,
+            'customer_name': rec.customer_name
+        })
         return rec
 
 

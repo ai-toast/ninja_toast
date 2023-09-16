@@ -6,8 +6,8 @@ from aws_cdk.aws_lambda_python_alpha import PythonLayerVersion
 from aws_cdk.aws_logs import RetentionDays
 from constructs import Construct
 
-from cdk.service.api_db_construct import ApiDbConstruct
 import cdk.service.constants as constants
+from cdk.service.api_db_construct import ApiDbConstruct
 
 
 class ApiConstruct(Construct):
@@ -35,7 +35,7 @@ class ApiConstruct(Construct):
         CfnOutput(self, id=constants.APIGATEWAY, value=rest_api.url).override_logical_id(constants.APIGATEWAY)
         return rest_api
 
-    #shared role for Create, Get, and Delete lambdas. Better to have separate for each.
+    # shared role for Create, Get, and Delete lambdas. Better to have separate for each.
     def _build_lambda_role(self, db: dynamodb.Table, idempotency_table: dynamodb.Table) -> iam.Role:
         return iam.Role(
             self,
@@ -81,16 +81,7 @@ class ApiConstruct(Construct):
             removal_policy=RemovalPolicy.DESTROY,
         )
 
-    def _add_post_lambda_integration(self, api_name: aws_apigateway.Resource, role: iam.Role, db: dynamodb.Table, appconfig_app_name: str,
-                                     idempotency_table: dynamodb.Table):
-
-        # POST /api/orders/
-        api_name.add_method(http_method='POST', integration=aws_apigateway.LambdaIntegration(handler=self._make_create_order_function(role, db, appconfig_app_name, idempotency_table)))
-
-        # DELETE /api/orders/
-        api_name.add_method(http_method='DELETE', integration=aws_apigateway.LambdaIntegration(handler=self._make_delete_lambda_function(role, db, appconfig_app_name)))
-
-    def _make_create_order_lambda(self, role: iam.Role, db:dynamodb.Table, appconfig_app_name: str, idempotency_table: dynamodb.Table):
+    def _build_create_order_lambda(self, role: iam.Role, db: dynamodb.Table, appconfig_app_name: str, idempotency_table: dynamodb.Table):
         lambda_function = _lambda.Function(
             self,
             constants.ORDER_CREATE_LAMBDA,
@@ -117,7 +108,7 @@ class ApiConstruct(Construct):
         )
         return lambda_function
 
-    def _make_delete_order_lambda(self, role: iam.Role, db:dynamodb.Table, appconfig_app_name: str):
+    def _build_delete_order_lambda(self, role: iam.Role, db: dynamodb.Table, appconfig_app_name: str):
         lambda_function = _lambda.Function(
             self,
             constants.ORDER_DELETE_LAMBDA,
@@ -143,7 +134,7 @@ class ApiConstruct(Construct):
         )
         return lambda_function
 
-    def _make_get_order_lambda(self, role: iam.Role, db:dynamodb.Table, appconfig_app_name: str):
+    def _build_get_order_lambda(self, role: iam.Role, db: dynamodb.Table, appconfig_app_name: str):
         lambda_function = _lambda.Function(
             self,
             constants.ORDER_CREATE_LAMBDA,
@@ -168,3 +159,21 @@ class ApiConstruct(Construct):
             log_retention=RetentionDays.ONE_DAY,
         )
         return lambda_function
+
+    def _add_post_lambda_integration(self, api_name: aws_apigateway.Resource, role: iam.Role, db: dynamodb.Table, appconfig_app_name: str,
+                                     idempotency_table: dynamodb.Table):
+
+        # POST /api/orders/
+        api_name.add_method(
+            http_method='POST',
+            integration=aws_apigateway.LambdaIntegration(handler=self._build_create_order_lambda(role, db, appconfig_app_name, idempotency_table)))
+
+        # DELETE /api/orders/
+        api_name.add_method(
+            http_method='DELETE',
+            integration=aws_apigateway.LambdaIntegration(handler=self._build_delete_order_lambda(role, db, appconfig_app_name)))
+
+        # GET /api/orders/
+        api_name.add_method(
+            http_method='GET',
+            integration=aws_apigateway.LambdaIntegration(handler=self._build_get_order_lambda(role, db, appconfig_app_name)))

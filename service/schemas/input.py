@@ -8,6 +8,7 @@ class CreateOrderRequest(BaseModel):
     customer_name: Annotated[str, Field(min_length=1, max_length=20)]
     order_item_count: PositiveInt
 
+
 class DeleteOrderRequest(BaseModel):
     order_id: str
 
@@ -19,5 +20,6 @@ class DeleteOrderRequest(BaseModel):
             raise ValueError(str(exc))
         return v
 
+
 class GetOrderRequest(DeleteOrderRequest):
-    ... # pragma: no cover
+    ...  # pragma: no cover
