@@ -42,6 +42,43 @@ class DynamoDalHandler(DalHandler):
         logger.info('finished create order', extra={'order_id': order_id, 'order_item_count': order_item_count, 'customer_name': customer_name})
         return entry
 
+    @tracer.capture_method(capture_response=False)
+    def delete_order_in_db(self, order_id: str) -> OrderEntry:
+        logger.info('trying to delete order', extra={'order_id': order_id})
+        rec = None
+        try:
+            entry = OrderEntry(order_id=order_id)
+            logger.info('opening connection to dynamodb table', extra={'table_name': self.table_name})
+            table: Table = self._get_db_handler()
+            response = table.delete_item(Item=entry.model_dump())
+            rec = OrderEntry.model_validate_json(response['Attributes'])
+        except (ClientError, ValidationError) as exc:
+            error_msg = 'failed to delete order'
+            logger.exception(error_msg, extra={'exception': str(exc), 'order_id': order_id})
+            raise InternalServerException(error_msg) from exc
+
+        logger.info('finished delete order', extra={'order_id': order_id})
+        return rec
+
+    @tracer.capture_method(capture_response=False)
+    def get_order_in_db(self, order_id: str) -> OrderEntry:
+        logger.info('trying to retrieve order', extra={'order_id': order_id})
+        rec = None
+        try:
+            entry = OrderEntry(order_id=order_id)
+            logger.info('opening connection to dynamodb table', extra={'table_name': self.table_name})
+            table: Table = self._get_db_handler()
+            response = table.get_item(Item=entry.model_dump())
+            rec = OrderEntry.model_validate_json(response['Item'])
+
+        except (ClientError, ValidationError) as exc:
+            error_msg = 'failed to get order'
+            logger.exception(error_msg, extra={'exception': str(exc), 'order_id': order_id})
+            raise InternalServerException(error_msg) from exc
+
+        logger.info('finished get order', extra={'order_id': rec.order_id, 'order_item_count': rec.order_item_count, 'customer_name': rec.customer_name})
+        return rec
+
 
 @lru_cache
 def get_dal_handler(table_name: str) -> DalHandler:

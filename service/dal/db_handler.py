@@ -17,3 +17,11 @@ class DalHandler(ABC, metaclass=_SingletonMeta):
     @abstractmethod
     def create_order_in_db(self, customer_name: str, order_item_count: int) -> OrderEntry:
         ...  # pragma: no cover
+
+    @abstractmethod
+    def delete_order_in_db(self, order_id: str) -> OrderEntry:
+        ...  # pragma: no cover
+
+    @abstractmethod
+    def create_order_in_db(self, customer_name: str, order_item_count: int) -> OrderEntry:
+        ...  # pragma: no cover
