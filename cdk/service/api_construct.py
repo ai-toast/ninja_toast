@@ -95,6 +95,8 @@ class ApiConstruct(Construct):
                 'CONFIGURATION_ENV': constants.ENVIRONMENT,  # for feature flags
                 'CONFIGURATION_NAME': constants.CONFIGURATION_NAME,  # for feature flags
                 'CONFIGURATION_MAX_AGE_MINUTES': constants.CONFIGURATION_MAX_AGE_MINUTES,  # for feature flags
+                'REST_API': 'https://www.ranthebuilder.cloud/api',  # for env vars example
+                'ROLE_ARN': 'arn:partition:service:region:account-id:resource-type:resource-id',  # for env vars example
                 'TABLE_NAME': db.table_name,
                 'IDEMPOTENCY_TABLE_NAME': idempotency_table.table_name,
             },
@@ -137,7 +139,7 @@ class ApiConstruct(Construct):
     def _build_get_order_lambda(self, role: iam.Role, db: dynamodb.Table, appconfig_app_name: str):
         lambda_function = _lambda.Function(
             self,
-            constants.ORDER_CREATE_LAMBDA,
+            constants.ORDER_GET_LAMBDA,
             runtime=_lambda.Runtime.PYTHON_3_11,
             code=_lambda.Code.from_asset(constants.BUILD_FOLDER),
             handler='service.handlers.get_order.get_order',
@@ -169,11 +171,9 @@ class ApiConstruct(Construct):
             integration=aws_apigateway.LambdaIntegration(handler=self._build_create_order_lambda(role, db, appconfig_app_name, idempotency_table)))
 
         # DELETE /api/orders/
-        api_name.add_method(
-            http_method='DELETE',
-            integration=aws_apigateway.LambdaIntegration(handler=self._build_delete_order_lambda(role, db, appconfig_app_name)))
+        api_name.add_method(http_method='DELETE',
+                            integration=aws_apigateway.LambdaIntegration(handler=self._build_delete_order_lambda(role, db, appconfig_app_name)))
 
         # GET /api/orders/
-        api_name.add_method(
-            http_method='GET',
-            integration=aws_apigateway.LambdaIntegration(handler=self._build_get_order_lambda(role, db, appconfig_app_name)))
+        api_name.add_method(http_method='GET',
+                            integration=aws_apigateway.LambdaIntegration(handler=self._build_get_order_lambda(role, db, appconfig_app_name)))
