@@ -45,7 +45,6 @@ class DynamoDalHandler(DalHandler):
     @tracer.capture_method(capture_response=False)
     def delete_order_in_db(self, order_id: str) -> OrderEntry:
         logger.info('trying to delete order', extra={'order_id': order_id})
-        rec = None
         try:
             entry = OrderEntry(order_id=order_id)
             logger.info('opening connection to dynamodb table', extra={'table_name': self.table_name})
@@ -63,7 +62,6 @@ class DynamoDalHandler(DalHandler):
     @tracer.capture_method(capture_response=False)
     def get_order_in_db(self, order_id: str) -> OrderEntry:
         logger.info('trying to retrieve order', extra={'order_id': order_id})
-        rec = None
         try:
             entry = OrderEntry(order_id=order_id)
             logger.info('opening connection to dynamodb table', extra={'table_name': self.table_name})

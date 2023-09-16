@@ -16,3 +16,9 @@ class CreateOrderOutput(BaseModel):
         except Exception as exc:
             raise ValueError(str(exc))
         return v
+
+class GetOrderOutput(CreateOrderOutput):
+    ... #pragma: no cover
+
+class DeleteOrderOutput(CreateOrderOutput):
+    ... #pragma: no cover

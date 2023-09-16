@@ -35,6 +35,7 @@ class ApiConstruct(Construct):
         CfnOutput(self, id=constants.APIGATEWAY, value=rest_api.url).override_logical_id(constants.APIGATEWAY)
         return rest_api
 
+    #shared role for Create, Get, and Delete lambdas. Better to have separate for each.
     def _build_lambda_role(self, db: dynamodb.Table, idempotency_table: dynamodb.Table) -> iam.Role:
         return iam.Role(
             self,
@@ -52,7 +53,7 @@ class ApiConstruct(Construct):
                 'dynamodb_db':
                     iam.PolicyDocument(statements=[
                         iam.PolicyStatement(
-                            actions=['dynamodb:PutItem', 'dynamodb:GetItem'],
+                            actions=['dynamodb:PutItem', 'dynamodb:GetItem', 'dynamodb:DeleteItem'],
                             resources=[db.table_arn],
                             effect=iam.Effect.ALLOW,
                         )
@@ -82,9 +83,17 @@ class ApiConstruct(Construct):
 
     def _add_post_lambda_integration(self, api_name: aws_apigateway.Resource, role: iam.Role, db: dynamodb.Table, appconfig_app_name: str,
                                      idempotency_table: dynamodb.Table):
+
+        # POST /api/orders/
+        api_name.add_method(http_method='POST', integration=aws_apigateway.LambdaIntegration(handler=self._make_create_order_function(role, db, appconfig_app_name, idempotency_table)))
+
+        # DELETE /api/orders/
+        api_name.add_method(http_method='DELETE', integration=aws_apigateway.LambdaIntegration(handler=self._make_delete_lambda_function(role, db, appconfig_app_name)))
+
+    def _make_create_order_lambda(self, role: iam.Role, db:dynamodb.Table, appconfig_app_name: str, idempotency_table: dynamodb.Table):
         lambda_function = _lambda.Function(
             self,
-            constants.CREATE_LAMBDA,
+            constants.ORDER_CREATE_LAMBDA,
             runtime=_lambda.Runtime.PYTHON_3_11,
             code=_lambda.Code.from_asset(constants.BUILD_FOLDER),
             handler='service.handlers.create_order.create_order',
@@ -95,8 +104,6 @@ class ApiConstruct(Construct):
                 'CONFIGURATION_ENV': constants.ENVIRONMENT,  # for feature flags
                 'CONFIGURATION_NAME': constants.CONFIGURATION_NAME,  # for feature flags
                 'CONFIGURATION_MAX_AGE_MINUTES': constants.CONFIGURATION_MAX_AGE_MINUTES,  # for feature flags
-                'REST_API': 'https://www.ranthebuilder.cloud/api',  # for env vars example
-                'ROLE_ARN': 'arn:partition:service:region:account-id:resource-type:resource-id',  # for env vars example
                 'TABLE_NAME': db.table_name,
                 'IDEMPOTENCY_TABLE_NAME': idempotency_table.table_name,
             },
@@ -108,6 +115,56 @@ class ApiConstruct(Construct):
             role=role,
             log_retention=RetentionDays.ONE_DAY,
         )
+        return lambda_function
 
-        # POST /api/orders/
-        api_name.add_method(http_method='POST', integration=aws_apigateway.LambdaIntegration(handler=lambda_function))
+    def _make_delete_order_lambda(self, role: iam.Role, db:dynamodb.Table, appconfig_app_name: str):
+        lambda_function = _lambda.Function(
+            self,
+            constants.ORDER_DELETE_LAMBDA,
+            runtime=_lambda.Runtime.PYTHON_3_11,
+            code=_lambda.Code.from_asset(constants.BUILD_FOLDER),
+            handler='service.handlers.delete_order.delete_order',
+            environment={
+                constants.POWERTOOLS_SERVICE_NAME: constants.SERVICE_NAME,  # for logger, tracer and metrics
+                constants.POWER_TOOLS_LOG_LEVEL: 'DEBUG',  # for logger
+                'CONFIGURATION_APP': appconfig_app_name,  # for feature flags
+                'CONFIGURATION_ENV': constants.ENVIRONMENT,  # for feature flags
+                'CONFIGURATION_NAME': constants.CONFIGURATION_NAME,  # for feature flags
+                'CONFIGURATION_MAX_AGE_MINUTES': constants.CONFIGURATION_MAX_AGE_MINUTES,  # for feature flags
+                'TABLE_NAME': db.table_name,
+            },
+            tracing=_lambda.Tracing.ACTIVE,
+            retry_attempts=0,
+            timeout=Duration.seconds(constants.API_HANDLER_LAMBDA_TIMEOUT),
+            memory_size=constants.API_HANDLER_LAMBDA_MEMORY_SIZE,
+            layers=[self.common_layer],
+            role=role,
+            log_retention=RetentionDays.ONE_DAY,
+        )
+        return lambda_function
+
+    def _make_get_order_lambda(self, role: iam.Role, db:dynamodb.Table, appconfig_app_name: str):
+        lambda_function = _lambda.Function(
+            self,
+            constants.ORDER_CREATE_LAMBDA,
+            runtime=_lambda.Runtime.PYTHON_3_11,
+            code=_lambda.Code.from_asset(constants.BUILD_FOLDER),
+            handler='service.handlers.get_order.get_order',
+            environment={
+                constants.POWERTOOLS_SERVICE_NAME: constants.SERVICE_NAME,  # for logger, tracer and metrics
+                constants.POWER_TOOLS_LOG_LEVEL: 'DEBUG',  # for logger
+                'CONFIGURATION_APP': appconfig_app_name,  # for feature flags
+                'CONFIGURATION_ENV': constants.ENVIRONMENT,  # for feature flags
+                'CONFIGURATION_NAME': constants.CONFIGURATION_NAME,  # for feature flags
+                'CONFIGURATION_MAX_AGE_MINUTES': constants.CONFIGURATION_MAX_AGE_MINUTES,  # for feature flags
+                'TABLE_NAME': db.table_name,
+            },
+            tracing=_lambda.Tracing.ACTIVE,
+            retry_attempts=0,
+            timeout=Duration.seconds(constants.API_HANDLER_LAMBDA_TIMEOUT),
+            memory_size=constants.API_HANDLER_LAMBDA_MEMORY_SIZE,
+            layers=[self.common_layer],
+            role=role,
+            log_retention=RetentionDays.ONE_DAY,
+        )
+        return lambda_function
