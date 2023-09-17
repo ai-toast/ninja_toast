@@ -1,6 +1,6 @@
 from abc import ABC, ABCMeta, abstractmethod
 
-from service.dal.schemas.db import OrderEntry
+from service.dal.schemas.db import OrderBase, OrderEntry
 
 
 class _SingletonMeta(ABCMeta):
@@ -19,7 +19,7 @@ class DalHandler(ABC, metaclass=_SingletonMeta):
         ...  # pragma: no cover
 
     @abstractmethod
-    def delete_order_in_db(self, order_id: str) -> OrderEntry:
+    def delete_order_in_db(self, order_id: str) -> OrderBase:
         ...  # pragma: no cover
 
     @abstractmethod

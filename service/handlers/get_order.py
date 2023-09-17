@@ -4,12 +4,12 @@ from typing import Any, Dict
 from aws_lambda_env_modeler import get_environment_variables, init_environment_variables
 from aws_lambda_powertools.metrics import MetricUnit
 from aws_lambda_powertools.utilities.feature_flags.exceptions import ConfigurationStoreError, SchemaValidationError
-from aws_lambda_powertools.utilities.parser import ValidationError, parse
-from aws_lambda_powertools.utilities.parser.envelopes import ApiGatewayEnvelope
+from aws_lambda_powertools.utilities.parser import ValidationError
 from aws_lambda_powertools.utilities.typing import LambdaContext
 
 from service.handlers.schemas.dynamic_configuration import MyConfiguration
-from service.handlers.schemas.env_vars import MyHandlerEnvVars
+from service.handlers.schemas.env_vars import OrderGetHandlerEnvVars
+from service.handlers.utils.apigw_parser import ApiGatewayEnvelopeExt
 from service.handlers.utils.dynamic_configuration import parse_configuration
 from service.handlers.utils.http_responses import build_response
 from service.handlers.utils.observability import logger, metrics, tracer
@@ -19,13 +19,13 @@ from service.schemas.input import GetOrderRequest
 from service.schemas.output import GetOrderOutput
 
 
-@init_environment_variables(model=MyHandlerEnvVars)
+@init_environment_variables(model=OrderGetHandlerEnvVars)
 @metrics.log_metrics
 @tracer.capture_lambda_handler(capture_response=False)
 def get_order(event: Dict[str, Any], context: LambdaContext) -> Dict[str, Any]:
     logger.set_correlation_id(context.aws_request_id)
 
-    env_vars: MyHandlerEnvVars = get_environment_variables(model=MyHandlerEnvVars)
+    env_vars: OrderGetHandlerEnvVars = get_environment_variables(model=OrderGetHandlerEnvVars)
     logger.debug('environment variables', extra=env_vars.model_dump())
 
     try:
@@ -36,8 +36,9 @@ def get_order(event: Dict[str, Any], context: LambdaContext) -> Dict[str, Any]:
         return build_response(http_status=HTTPStatus.INTERNAL_SERVER_ERROR, body={})
 
     try:
-        # we want to extract and parse the HTTP body from the api gw envelope
-        get_input: GetOrderRequest = parse(event=event, model=GetOrderRequest, envelope=ApiGatewayEnvelope)
+        # we want to extract and parse the HTTP header from the api gw envelope
+        envelope = ApiGatewayEnvelopeExt()
+        get_input: GetOrderRequest = envelope.parseHeader(data=event, model=GetOrderRequest)
         logger.info('got get order request', extra={'order_id': get_input.order_id})
     except (ValidationError, TypeError) as exc:
         logger.error('event failed input validation', extra={'error': str(exc)})

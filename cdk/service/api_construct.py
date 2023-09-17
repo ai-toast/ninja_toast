@@ -26,7 +26,7 @@ class ApiConstruct(Construct):
         rest_api: aws_apigateway.RestApi = aws_apigateway.RestApi(
             self,
             'service-rest-api',
-            rest_api_name='Service Rest API',
+            rest_api_name='Ninja Service Rest API',
             description='This service handles /api/orders requests',
             deploy_options=aws_apigateway.StageOptions(throttling_rate_limit=2, throttling_burst_limit=10),
             cloud_watch_role=False,
@@ -124,6 +124,8 @@ class ApiConstruct(Construct):
                 'CONFIGURATION_ENV': constants.ENVIRONMENT,  # for feature flags
                 'CONFIGURATION_NAME': constants.CONFIGURATION_NAME,  # for feature flags
                 'CONFIGURATION_MAX_AGE_MINUTES': constants.CONFIGURATION_MAX_AGE_MINUTES,  # for feature flags
+                'REST_API': 'https://www.ranthebuilder.cloud/api',  # for env vars example
+                'ROLE_ARN': 'arn:partition:service:region:account-id:resource-type:resource-id',  # for env vars example
                 'TABLE_NAME': db.table_name,
             },
             tracing=_lambda.Tracing.ACTIVE,
@@ -150,6 +152,8 @@ class ApiConstruct(Construct):
                 'CONFIGURATION_ENV': constants.ENVIRONMENT,  # for feature flags
                 'CONFIGURATION_NAME': constants.CONFIGURATION_NAME,  # for feature flags
                 'CONFIGURATION_MAX_AGE_MINUTES': constants.CONFIGURATION_MAX_AGE_MINUTES,  # for feature flags
+                'REST_API': 'https://www.ranthebuilder.cloud/api',  # for env vars example
+                'ROLE_ARN': 'arn:partition:service:region:account-id:resource-type:resource-id',  # for env vars example
                 'TABLE_NAME': db.table_name,
             },
             tracing=_lambda.Tracing.ACTIVE,

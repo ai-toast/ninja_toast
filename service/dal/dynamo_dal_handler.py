@@ -1,4 +1,3 @@
-import json
 import uuid
 from functools import lru_cache
 
@@ -44,14 +43,24 @@ class DynamoDalHandler(DalHandler):
         return entry
 
     @tracer.capture_method(capture_response=False)
-    def delete_order_in_db(self, order_id: str) -> OrderEntry:
+    def delete_order_in_db(self, order_id: str) -> OrderBase:
         logger.info('trying to delete order', extra={'order_id': order_id})
         try:
             entry = OrderBase(order_id=order_id)
             logger.info('opening connection to dynamodb table', extra={'table_name': self.table_name})
             table: Table = self._get_db_handler()
-            response = table.delete_item(Key=entry.model_dump())
-            rec = OrderEntry.model_validate_json(json.dumps(response['Attributes']))
+
+            key = entry.model_dump()
+            logger.debug('DDB order Key', extra={'key': key})
+            response = table.delete_item(Key=key)
+            logger.debug('DELETE order ddb Response', extra={'response': response})
+            # if 'Attributes' in response:
+            #     logger.debug('DELETE order ddb Response.Attributes', extra={'item': response['Attributes']})
+            #     rec = OrderEntry.model_validate(response['Attributes'])
+            # else:
+            # rec = OrderEntry(order_id=order_id, customer_name="???", order_item_count=1)
+            rec = OrderBase(order_id=order_id)
+
         except (ClientError, ValidationError) as exc:
             error_msg = 'failed to delete order'
             logger.exception(error_msg, extra={'exception': str(exc), 'order_id': order_id})
@@ -67,8 +76,12 @@ class DynamoDalHandler(DalHandler):
             entry = OrderBase(order_id=order_id)
             logger.info('opening connection to dynamodb table', extra={'table_name': self.table_name})
             table: Table = self._get_db_handler()
-            response = table.get_item(Key=entry.model_dump())
-            rec = OrderEntry.model_validate_json(json.dumps(response['Item']))
+            key = entry.model_dump()
+            logger.debug('DDB order Key', extra={'key': key})
+            response = table.get_item(Key=key)
+            logger.debug('GET order ddb Response', extra={'response': response})
+            logger.debug('GET order ddb Response.Item', extra={'item': response['Item']})
+            rec = OrderEntry.model_validate(response['Item'])
 
         except (ClientError, ValidationError) as exc:
             error_msg = 'failed to get order'

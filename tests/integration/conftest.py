@@ -24,7 +24,7 @@ def init():
     os.environ['CONFIGURATION_ENV'] = ENVIRONMENT
     os.environ['CONFIGURATION_NAME'] = CONFIGURATION_NAME
     os.environ['CONFIGURATION_MAX_AGE_MINUTES'] = '5'
-    os.environ['AWS_DEFAULT_REGION'] = 'ap-southeast-2' # us-east-1'  # used for appconfig mocked boto calls
+    os.environ['AWS_DEFAULT_REGION'] = 'ap-southeast-2'  # us-east-1'  # used for appconfig mocked boto calls
     os.environ['TABLE_NAME'] = get_stack_output(TABLE_NAME_OUTPUT)
     os.environ['IDEMPOTENCY_TABLE_NAME'] = get_stack_output(IDEMPOTENCY_TABLE_NAME_OUTPUT)
 

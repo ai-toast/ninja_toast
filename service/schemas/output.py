@@ -22,5 +22,13 @@ class GetOrderOutput(CreateOrderOutput):
     ...  # pragma: no cover
 
 
-class DeleteOrderOutput(CreateOrderOutput):
-    ...  # pragma: no cover
+class DeleteOrderOutput(BaseModel):
+    order_id: str
+
+    @field_validator('order_id')
+    def valid_uuid(cls, v):
+        try:
+            UUID(v, version=4)
+        except Exception as exc:
+            raise ValueError(str(exc))
+        return v
