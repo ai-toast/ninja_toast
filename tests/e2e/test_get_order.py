@@ -4,14 +4,14 @@ from http import HTTPStatus
 import pytest
 import requests
 
-from cdk.service.constants import APIGATEWAY, GW_RESOURCE
+from cdk.service.constants import ORDERS_APIGATEWAY, ORDERS_GW_RESOURCE
 from service.schemas.input import CreateOrderRequest
 from tests.utils import generate_random_string, get_stack_output
 
 
 @pytest.fixture(scope='module', autouse=True)
 def api_gw_url():
-    return f'{get_stack_output(APIGATEWAY)}api/{GW_RESOURCE}'
+    return f'{get_stack_output(ORDERS_APIGATEWAY)}api/{ORDERS_GW_RESOURCE}'
 
 
 def test_handler_200_ok(api_gw_url):

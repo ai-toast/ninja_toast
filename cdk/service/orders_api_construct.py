@@ -19,7 +19,7 @@ class OrdersApiConstruct(Construct):
         self.lambda_role = self._build_lambda_role(self.api_db.db, self.api_db.idempotency_db)
         self.common_layer = self._build_common_layer()
         self.rest_api = self._build_api_gw()
-        api_resource: aws_apigateway.Resource = self.rest_api.root.add_resource('api').add_resource(constants.GW_RESOURCE)
+        api_resource: aws_apigateway.Resource = self.rest_api.root.add_resource('api').add_resource(constants.ORDERS_GW_RESOURCE)
         self._add_post_lambda_integration(api_resource, self.lambda_role, self.api_db.db, appconfig_app_name, self.api_db.idempotency_db)
 
     def _build_api_gw(self) -> aws_apigateway.RestApi:
@@ -32,7 +32,7 @@ class OrdersApiConstruct(Construct):
             cloud_watch_role=False,
         )
 
-        CfnOutput(self, id=constants.APIGATEWAY, value=rest_api.url).override_logical_id(constants.APIGATEWAY)
+        CfnOutput(self, id=constants.ORDERS_APIGATEWAY, value=rest_api.url).override_logical_id(constants.ORDERS_APIGATEWAY)
         return rest_api
 
     # shared role for Create, Get, and Delete lambdas. Better to have separate for each.
@@ -75,7 +75,7 @@ class OrdersApiConstruct(Construct):
     def _build_common_layer(self) -> PythonLayerVersion:
         return PythonLayerVersion(
             self,
-            f'{self.id_}{constants.LAMBDA_LAYER_NAME}',
+            f'{self.id_}{constants.COMMON_LAMBDA_LAYER_NAME}',
             entry=constants.COMMON_LAYER_BUILD_FOLDER,
             compatible_runtimes=[_lambda.Runtime.PYTHON_3_11],
             removal_policy=RemovalPolicy.DESTROY,
@@ -84,7 +84,7 @@ class OrdersApiConstruct(Construct):
     def _build_create_order_lambda(self, role: iam.Role, db: dynamodb.Table, appconfig_app_name: str, idempotency_table: dynamodb.Table):
         lambda_function = _lambda.Function(
             self,
-            constants.ORDER_CREATE_LAMBDA,
+            constants.ORDERS_CREATE_LAMBDA,
             runtime=_lambda.Runtime.PYTHON_3_11,
             code=_lambda.Code.from_asset(constants.BUILD_FOLDER),
             handler='service.handlers.create_order.create_order',
@@ -113,7 +113,7 @@ class OrdersApiConstruct(Construct):
     def _build_delete_order_lambda(self, role: iam.Role, db: dynamodb.Table, appconfig_app_name: str):
         lambda_function = _lambda.Function(
             self,
-            constants.ORDER_DELETE_LAMBDA,
+            constants.ORDERS_DELETE_LAMBDA,
             runtime=_lambda.Runtime.PYTHON_3_11,
             code=_lambda.Code.from_asset(constants.BUILD_FOLDER),
             handler='service.handlers.delete_order.delete_order',
@@ -141,7 +141,7 @@ class OrdersApiConstruct(Construct):
     def _build_get_order_lambda(self, role: iam.Role, db: dynamodb.Table, appconfig_app_name: str):
         lambda_function = _lambda.Function(
             self,
-            constants.ORDER_GET_LAMBDA,
+            constants.ORDERS_GET_LAMBDA,
             runtime=_lambda.Runtime.PYTHON_3_11,
             code=_lambda.Code.from_asset(constants.BUILD_FOLDER),
             handler='service.handlers.get_order.get_order',
