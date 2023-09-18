@@ -13,7 +13,7 @@ from service.handlers.utils.apigw_parser import ApiGatewayEnvelopeExt
 from service.handlers.utils.dynamic_configuration import parse_configuration
 from service.handlers.utils.http_responses import build_response
 from service.handlers.utils.observability import logger, metrics, tracer
-from service.logic.handle_get_request import handle_get_request
+from service.logic.orders.handle_get_request import handle_get_request
 from service.schemas.exceptions import InternalServerException
 from service.schemas.input import GetOrderRequest
 from service.schemas.output import GetOrderOutput

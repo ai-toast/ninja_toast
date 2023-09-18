@@ -13,7 +13,7 @@ from service.handlers.schemas.env_vars import OrderGetHandlerEnvVars
 from service.handlers.utils.dynamic_configuration import parse_configuration
 from service.handlers.utils.http_responses import build_response
 from service.handlers.utils.observability import logger, metrics, tracer
-from service.logic.handle_delete_request import handle_delete_request
+from service.logic.orders.handle_delete_request import handle_delete_request
 from service.schemas.exceptions import InternalServerException
 from service.schemas.input import DeleteOrderRequest
 from service.schemas.output import DeleteOrderOutput

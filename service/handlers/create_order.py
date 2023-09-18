@@ -15,7 +15,7 @@ from service.handlers.utils.dynamic_configuration import parse_configuration
 from service.handlers.utils.http_responses import build_response
 from service.handlers.utils.idempotency import IDEMPOTENCY_CONFIG, IDEMPOTENCY_LAYER
 from service.handlers.utils.observability import logger, metrics, tracer
-from service.logic.handle_create_request import handle_create_request
+from service.logic.orders.handle_create_request import handle_create_request
 from service.schemas.exceptions import InternalServerException
 from service.schemas.input import CreateOrderRequest
 from service.schemas.output import CreateOrderOutput
