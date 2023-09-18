@@ -19,16 +19,40 @@ class DynamicConfiguration(BaseModel):
     CONFIGURATION_MAX_AGE_MINUTES: PositiveInt
 
 
-class OrderCreateHandlerEnvVars(Observability, DynamicConfiguration, Idempotency):
+class CreateHandlerEnvVars(Observability, DynamicConfiguration, Idempotency):
     REST_API: HttpUrl
     ROLE_ARN: Annotated[str, Field(min_length=20, max_length=2048)]
     TABLE_NAME: Annotated[str, Field(min_length=1)]
 
 
-class OrderDeleteHandlerEnvVars(Observability):
+class DeleteHandlerEnvVars(Observability):
     REST_API: HttpUrl
     TABLE_NAME: Annotated[str, Field(min_length=1)]
 
 
-class OrderGetHandlerEnvVars(OrderDeleteHandlerEnvVars):
+class GetHandlerEnvVars(DeleteHandlerEnvVars):
+    ...  # pragma: no cover
+
+
+class OrderCreateHandlerEnvVars(CreateHandlerEnvVars):
+    ...  # pragma: no cover
+
+
+class OrderDeleteHandlerEnvVars(DeleteHandlerEnvVars):
+    ...  # pragma: no cover
+
+
+class OrderGetHandlerEnvVars(GetHandlerEnvVars):
+    ...  # pragma: no cover
+
+
+class UserCreateHandlerEnvVars(CreateHandlerEnvVars):
+    ...  # pragma: no cover
+
+
+class UserDeleteHandlerEnvVars(DeleteHandlerEnvVars):
+    ...  # pragma: no cover
+
+
+class UserGetHandlerEnvVars(GetHandlerEnvVars):
     ...  # pragma: no cover
