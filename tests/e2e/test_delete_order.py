@@ -5,7 +5,7 @@ import pytest
 import requests
 
 from cdk.service.constants import APIGATEWAY, GW_RESOURCE
-from service.schemas.input import CreateOrderRequest
+from service.schemas.input import CreateOrderRequest, DeleteOrderRequest
 from tests.utils import generate_random_string, get_stack_output
 
 
@@ -24,19 +24,23 @@ def test_handler_200_ok(api_gw_url):
     assert rec_created['customer_name'] == customer_name
     assert rec_created['order_item_count'] == 5
 
-    # get the order
+    # delete the order
     order_id = rec_created['order_id']
-    response = requests.get(api_gw_url, headers={'order_id': order_id})
+    inputs = DeleteOrderRequest(order_id=order_id)
+    response = requests.delete(api_gw_url, data=inputs.model_dump_json())
     assert response.status_code == HTTPStatus.OK
     body = json.loads(response.text)
     assert body['order_id']
-    assert body['customer_name'] == customer_name
-    assert body['order_item_count'] == 5
+    assert body['order_id'] == order_id
+
+    # assert failing to get the order
+    response_get = requests.get(api_gw_url, headers={'order_id': order_id})
+    assert response_get.status_code == HTTPStatus.BAD_GATEWAY
 
 
 def test_handler_bad_request(api_gw_url):
     order_id = f'non-uuid-string-{generate_random_string()}'
-    response = requests.get(api_gw_url, headers={'order_id': order_id})
+    response = requests.post(api_gw_url, data=json.dumps({'order_id': order_id}))
     assert response.status_code == HTTPStatus.BAD_REQUEST
     body_dict = json.loads(response.text)
     assert body_dict == {}
