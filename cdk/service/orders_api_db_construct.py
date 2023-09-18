@@ -5,7 +5,7 @@ from constructs import Construct
 import cdk.service.constants as constants
 
 
-class ApiDbConstruct(Construct):
+class OrdersApiDbConstruct(Construct):
 
     def __init__(self, scope: Construct, id_: str) -> None:
         super().__init__(scope, id_)

@@ -6,7 +6,7 @@ from cdk_nag import AwsSolutionsChecks, NagSuppressions
 from constructs import Construct
 from git import Repo
 
-from cdk.service.api_construct import ApiConstruct
+from cdk.service.orders_api_construct import OrdersApiConstruct
 from cdk.service.configuration.configuration_construct import ConfigurationStore
 from cdk.service.constants import CONFIGURATION_NAME, ENVIRONMENT, SERVICE_NAME
 
@@ -37,7 +37,7 @@ class ServiceStack(Stack):
         # from running the service pipeline and without redeploying the service lambdas. For the sake of this template
         # example, it is deployed as part of the service stack
         self.dynamic_configuration = ConfigurationStore(self, f'{id}dynamic_conf'[0:64], ENVIRONMENT, SERVICE_NAME, CONFIGURATION_NAME)
-        self.api = ApiConstruct(self, f'{id}Service'[0:64], self.dynamic_configuration.config_app.name)
+        self.api = OrdersApiConstruct(self, f'{id}Service'[0:64], self.dynamic_configuration.config_app.name)
 
         # add security check
         self._add_security_tests()

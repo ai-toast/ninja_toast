@@ -7,15 +7,15 @@ from aws_cdk.aws_logs import RetentionDays
 from constructs import Construct
 
 import cdk.service.constants as constants
-from cdk.service.api_db_construct import ApiDbConstruct
+from cdk.service.orders_api_db_construct import OrdersApiDbConstruct
 
 
-class ApiConstruct(Construct):
+class OrdersApiConstruct(Construct):
 
     def __init__(self, scope: Construct, id_: str, appconfig_app_name: str) -> None:
         super().__init__(scope, id_)
         self.id_ = id_
-        self.api_db = ApiDbConstruct(self, f'{id_}db')
+        self.api_db = OrdersApiDbConstruct(self, f'{id_}db')
         self.lambda_role = self._build_lambda_role(self.api_db.db, self.api_db.idempotency_db)
         self.common_layer = self._build_common_layer()
         self.rest_api = self._build_api_gw()
