@@ -80,19 +80,23 @@ class DynamoDalHandler(DalHandler):
             logger.debug('DDB order Key', extra={'key': key})
             response = table.get_item(Key=key)
             logger.debug('GET order ddb Response', extra={'response': response})
-            logger.debug('GET order ddb Response.Item', extra={'item': response['Item']})
-            rec = OrderEntry.model_validate(response['Item'])
+            if 'Item' in response:
+                logger.debug('GET order ddb Response.Item', extra={'item': response['Item']})
+                rec = OrderEntry.model_validate(response['Item'])
+                logger.info('finished get order', extra={
+                    'order_id': rec.order_id,
+                    'order_item_count': rec.order_item_count,
+                    'customer_name': rec.customer_name
+                })
+            else:
+                logger.info(f'Order {order_id} not found')
+                rec = None
 
         except (ClientError, ValidationError) as exc:
             error_msg = 'failed to get order'
             logger.exception(error_msg, extra={'exception': str(exc), 'order_id': order_id})
             raise InternalServerException(error_msg) from exc
 
-        logger.info('finished get order', extra={
-            'order_id': rec.order_id,
-            'order_item_count': rec.order_item_count,
-            'customer_name': rec.customer_name
-        })
         return rec
 
 

@@ -35,7 +35,7 @@ def test_handler_200_ok(api_gw_url):
 
     # assert failing to get the order
     response_get = requests.get(api_gw_url, headers={'order_id': order_id})
-    assert response_get.status_code == HTTPStatus.BAD_GATEWAY
+    assert response_get.status_code == HTTPStatus.NOT_FOUND
 
 
 def test_handler_bad_request(api_gw_url):

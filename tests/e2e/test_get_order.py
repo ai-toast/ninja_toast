@@ -40,3 +40,11 @@ def test_handler_bad_request(api_gw_url):
     assert response.status_code == HTTPStatus.BAD_REQUEST
     body_dict = json.loads(response.text)
     assert body_dict == {}
+
+
+def test_handler_not_found(api_gw_url):
+    order_id = '1bc634f1-3a11-41e8-a0a2-58da4717fb7b'
+    response = requests.get(api_gw_url, headers={'order_id': order_id})
+    assert response.status_code == HTTPStatus.NOT_FOUND
+    body_dict = json.loads(response.text)
+    assert body_dict == {}

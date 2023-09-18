@@ -1,5 +1,5 @@
 from http import HTTPStatus
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
 from aws_lambda_env_modeler import get_environment_variables, init_environment_variables
 from aws_lambda_powertools.metrics import MetricUnit
@@ -46,7 +46,7 @@ def get_order(event: Dict[str, Any], context: LambdaContext) -> Dict[str, Any]:
 
     metrics.add_metric(name='ValidDeleteOrderEvents', unit=MetricUnit.Count, value=1)
     try:
-        response: GetOrderOutput = handle_get_request(
+        response: Optional[GetOrderOutput] = handle_get_request(
             get_request=get_input,
             table_name=env_vars.TABLE_NAME,
         )
@@ -55,4 +55,7 @@ def get_order(event: Dict[str, Any], context: LambdaContext) -> Dict[str, Any]:
         return build_response(http_status=HTTPStatus.INTERNAL_SERVER_ERROR, body={})
 
     logger.info('finished handling get order request')
-    return build_response(http_status=HTTPStatus.OK, body=response.model_dump())
+    if response is not None:
+        return build_response(http_status=HTTPStatus.OK, body=response.model_dump())
+    else:
+        return build_response(http_status=HTTPStatus.NOT_FOUND, body={})
