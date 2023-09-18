@@ -12,7 +12,7 @@ class _SingletonMeta(ABCMeta):
         return cls._instances[cls]
 
 
-class OrdersDalHandler(ABC, metaclass=_SingletonMeta):
+class UsersDalHandler(ABC, metaclass=_SingletonMeta):
 
     @abstractmethod
     def create_user_in_db(self, user_name: str, email: str) -> UserEntry:
