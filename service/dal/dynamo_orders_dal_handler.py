@@ -8,7 +8,7 @@ from mypy_boto3_dynamodb import DynamoDBServiceResource
 from mypy_boto3_dynamodb.service_resource import Table
 from pydantic import ValidationError
 
-from service.dal.db_handler import OrdersDalHandler
+from service.dal.orders_db_handler import OrdersDalHandler
 from service.dal.schemas.orders_db import OrderBase, OrderEntry
 from service.handlers.utils.observability import logger, tracer
 from service.schemas.exceptions import InternalServerException

@@ -1,7 +1,7 @@
 from typing import Optional
 
-from service.dal.db_handler import OrdersDalHandler
-from service.dal.dynamo_dal_handler import get_dal_handler
+from service.dal.dynamo_orders_dal_handler import get_dal_handler
+from service.dal.orders_db_handler import OrdersDalHandler
 from service.dal.schemas.orders_db import OrderEntry
 from service.handlers.utils.observability import logger, tracer
 from service.schemas.input import GetOrderRequest

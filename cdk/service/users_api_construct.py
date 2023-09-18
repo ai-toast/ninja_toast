@@ -7,27 +7,27 @@ from aws_cdk.aws_logs import RetentionDays
 from constructs import Construct
 
 import cdk.service.constants as constants
-from cdk.service.orders_api_db_construct import OrdersApiDbConstruct
+from cdk.service.users_api_db_construct import UsersApiDbConstruct
 
 
-class OrdersApiConstruct(Construct):
+class UsersApiConstruct(Construct):
 
     def __init__(self, scope: Construct, id_: str, appconfig_app_name: str) -> None:
         super().__init__(scope, id_)
         self.id_ = id_
-        self.api_db = OrdersApiDbConstruct(self, f'{id_}db')
+        self.api_db = UsersApiDbConstruct(self, f'{id_}db')
         self.lambda_role = self._build_lambda_role(self.api_db.db, self.api_db.idempotency_db)
         self.common_layer = self._build_common_layer()
         self.rest_api = self._build_api_gw()
-        api_resource: aws_apigateway.Resource = self.rest_api.root.add_resource('api').add_resource(constants.ORDERS_GW_RESOURCE)
+        api_resource: aws_apigateway.Resource = self.rest_api.root.add_resource('api').add_resource(constants.USERS_GW_RESOURCE)
         self._add_post_lambda_integration(api_resource, self.lambda_role, self.api_db.db, appconfig_app_name, self.api_db.idempotency_db)
 
     def _build_api_gw(self) -> aws_apigateway.RestApi:
         rest_api: aws_apigateway.RestApi = aws_apigateway.RestApi(
             self,
-            'orders-rest-api',
-            rest_api_name='Ninja Orders Rest API',
-            description='This service handles /api/orders requests',
+            'users-rest-api',
+            rest_api_name='Ninja Users Rest API',
+            description='This service handles /api/users requests',
             deploy_options=aws_apigateway.StageOptions(throttling_rate_limit=2, throttling_burst_limit=10),
             cloud_watch_role=False,
         )
@@ -81,13 +81,13 @@ class OrdersApiConstruct(Construct):
             removal_policy=RemovalPolicy.DESTROY,
         )
 
-    def _build_create_order_lambda(self, role: iam.Role, db: dynamodb.Table, appconfig_app_name: str, idempotency_table: dynamodb.Table):
+    def _build_create_user_lambda(self, role: iam.Role, db: dynamodb.Table, appconfig_app_name: str, idempotency_table: dynamodb.Table):
         lambda_function = _lambda.Function(
             self,
-            constants.ORDERS_CREATE_LAMBDA,
+            constants.USERS_CREATE_LAMBDA,
             runtime=_lambda.Runtime.PYTHON_3_11,
             code=_lambda.Code.from_asset(constants.BUILD_FOLDER),
-            handler='service.handlers.create_order.create_order',
+            handler='service.handlers.create_user.create_user',
             environment={
                 constants.POWERTOOLS_SERVICE_NAME: constants.SERVICE_NAME,  # for logger, tracer and metrics
                 constants.POWER_TOOLS_LOG_LEVEL: 'DEBUG',  # for logger
@@ -110,13 +110,13 @@ class OrdersApiConstruct(Construct):
         )
         return lambda_function
 
-    def _build_delete_order_lambda(self, role: iam.Role, db: dynamodb.Table, appconfig_app_name: str):
+    def _build_delete_user_lambda(self, role: iam.Role, db: dynamodb.Table, appconfig_app_name: str):
         lambda_function = _lambda.Function(
             self,
-            constants.ORDERS_DELETE_LAMBDA,
+            constants.USERS_DELETE_LAMBDA,
             runtime=_lambda.Runtime.PYTHON_3_11,
             code=_lambda.Code.from_asset(constants.BUILD_FOLDER),
-            handler='service.handlers.delete_order.delete_order',
+            handler='service.handlers.delete_user.delete_user',
             environment={
                 constants.POWERTOOLS_SERVICE_NAME: constants.SERVICE_NAME,  # for logger, tracer and metrics
                 constants.POWER_TOOLS_LOG_LEVEL: 'DEBUG',  # for logger
@@ -138,13 +138,13 @@ class OrdersApiConstruct(Construct):
         )
         return lambda_function
 
-    def _build_get_order_lambda(self, role: iam.Role, db: dynamodb.Table, appconfig_app_name: str):
+    def _build_get_user_lambda(self, role: iam.Role, db: dynamodb.Table, appconfig_app_name: str):
         lambda_function = _lambda.Function(
             self,
-            constants.ORDERS_GET_LAMBDA,
+            constants.USERS_GET_LAMBDA,
             runtime=_lambda.Runtime.PYTHON_3_11,
             code=_lambda.Code.from_asset(constants.BUILD_FOLDER),
-            handler='service.handlers.get_order.get_order',
+            handler='service.handlers.get_user.get_user',
             environment={
                 constants.POWERTOOLS_SERVICE_NAME: constants.SERVICE_NAME,  # for logger, tracer and metrics
                 constants.POWER_TOOLS_LOG_LEVEL: 'DEBUG',  # for logger
@@ -169,15 +169,15 @@ class OrdersApiConstruct(Construct):
     def _add_post_lambda_integration(self, api_name: aws_apigateway.Resource, role: iam.Role, db: dynamodb.Table, appconfig_app_name: str,
                                      idempotency_table: dynamodb.Table):
 
-        # POST /api/orders/
+        # POST /api/users/
         api_name.add_method(
             http_method='POST',
-            integration=aws_apigateway.LambdaIntegration(handler=self._build_create_order_lambda(role, db, appconfig_app_name, idempotency_table)))
+            integration=aws_apigateway.LambdaIntegration(handler=self._build_create_user_lambda(role, db, appconfig_app_name, idempotency_table)))
 
-        # DELETE /api/orders/
+        # DELETE /api/users/
         api_name.add_method(http_method='DELETE',
-                            integration=aws_apigateway.LambdaIntegration(handler=self._build_delete_order_lambda(role, db, appconfig_app_name)))
+                            integration=aws_apigateway.LambdaIntegration(handler=self._build_delete_user_lambda(role, db, appconfig_app_name)))
 
-        # GET /api/orders/
+        # GET /api/users/
         api_name.add_method(http_method='GET',
-                            integration=aws_apigateway.LambdaIntegration(handler=self._build_get_order_lambda(role, db, appconfig_app_name)))
+                            integration=aws_apigateway.LambdaIntegration(handler=self._build_get_user_lambda(role, db, appconfig_app_name)))

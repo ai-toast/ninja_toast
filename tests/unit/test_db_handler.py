@@ -1,7 +1,7 @@
 import pytest
 from botocore.stub import Stubber
 
-from service.dal.dynamo_dal_handler import DynamoOrdersDalHandler
+from service.dal.dynamo_orders_dal_handler import DynamoOrdersDalHandler
 from service.schemas.exceptions import InternalServerException
 
 

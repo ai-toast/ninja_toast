@@ -6,7 +6,7 @@ import boto3
 from aws_lambda_powertools.utilities.feature_flags.exceptions import SchemaValidationError
 from botocore.stub import Stubber
 
-from service.dal.dynamo_dal_handler import DynamoOrdersDalHandler
+from service.dal.dynamo_orders_dal_handler import DynamoOrdersDalHandler
 from service.schemas.input import CreateOrderRequest
 from tests.utils import generate_api_gw_event, generate_context, generate_random_string
 

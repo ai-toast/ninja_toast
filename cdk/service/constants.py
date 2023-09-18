@@ -9,6 +9,17 @@ ORDERS_IDEMPOTENCY_TABLE_NAME_OUTPUT = 'OrdersIdempotencyDbOutput'
 ORDERS_APIGATEWAY = 'OrdersApigateway'
 ORDERS_GW_RESOURCE = 'orders'
 
+# Users Service
+USERS_CREATE_LAMBDA = 'CreateUser'
+USERS_DELETE_LAMBDA = 'DeleteUser'
+USERS_GET_LAMBDA = 'GetUser'
+USERS_TABLE_NAME = 'users'
+USERS_TABLE_NAME_OUTPUT = 'UsersDbOutput'
+USERS_IDEMPOTENCY_TABLE_NAME = 'UsersIdempotencyTable'
+USERS_IDEMPOTENCY_TABLE_NAME_OUTPUT = 'UsersIdempotencyDbOutput'
+USERS_APIGATEWAY = 'UsersApigateway'
+USERS_GW_RESOURCE = 'users'
+
 # Common Lambda
 SERVICE_ROLE_ARN = 'ServiceRoleArn'
 LAMBDA_BASIC_EXECUTION_ROLE = 'AWSLambdaBasicExecutionRole'
