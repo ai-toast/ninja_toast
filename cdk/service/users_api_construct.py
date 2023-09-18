@@ -32,7 +32,7 @@ class UsersApiConstruct(Construct):
             cloud_watch_role=False,
         )
 
-        CfnOutput(self, id=constants.ORDERS_APIGATEWAY, value=rest_api.url).override_logical_id(constants.ORDERS_APIGATEWAY)
+        CfnOutput(self, id=constants.USERS_APIGATEWAY, value=rest_api.url).override_logical_id(constants.USERS_APIGATEWAY)
         return rest_api
 
     # shared role for Create, Get, and Delete lambdas. Better to have separate for each.

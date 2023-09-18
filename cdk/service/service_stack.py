@@ -9,6 +9,7 @@ from git import Repo
 from cdk.service.configuration.configuration_construct import ConfigurationStore
 from cdk.service.constants import CONFIGURATION_NAME, ENVIRONMENT, SERVICE_NAME
 from cdk.service.orders_api_construct import OrdersApiConstruct
+from cdk.service.users_api_construct import UsersApiConstruct
 
 
 def get_username() -> str:
@@ -31,13 +32,16 @@ class ServiceStack(Stack):
 
     def __init__(self, scope: Construct, id: str, **kwargs) -> None:
         super().__init__(scope, id, **kwargs)
-        Tags.of(self).add('service_name', 'Order')
+        Tags.of(self).add('service_name', 'ninja')
+        Tags.of(self).add('order_service_name', 'Order')
+        Tags.of(self).add('user_service_name', 'User')
 
         # This construct should be deployed in a different repo and have its own pipeline so updates can be decoupled
         # from running the service pipeline and without redeploying the service lambdas. For the sake of this template
         # example, it is deployed as part of the service stack
         self.dynamic_configuration = ConfigurationStore(self, f'{id}dynamic_conf'[0:64], ENVIRONMENT, SERVICE_NAME, CONFIGURATION_NAME)
-        self.api = OrdersApiConstruct(self, f'{id}Service'[0:64], self.dynamic_configuration.config_app.name)
+        self.orders_api = OrdersApiConstruct(self, f'{id}_OrdersService'[0:64], self.dynamic_configuration.config_app.name)
+        self.users_api = UsersApiConstruct(self, f'{id}_UsersService'[0:64], self.dynamic_configuration.config_app.name)
 
         # add security check
         self._add_security_tests()
