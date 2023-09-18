@@ -1,8 +1,8 @@
 from typing import Optional
 
-from service.dal.db_handler import DalHandler
+from service.dal.db_handler import OrdersDalHandler
 from service.dal.dynamo_dal_handler import get_dal_handler
-from service.dal.schemas.db import OrderEntry
+from service.dal.schemas.orders_db import OrderEntry
 from service.handlers.utils.observability import logger, tracer
 from service.schemas.input import GetOrderRequest
 from service.schemas.output import GetOrderOutput
@@ -14,7 +14,7 @@ def handle_get_request(get_request: GetOrderRequest, table_name: str) -> Optiona
         'order_id': get_request.order_id,
     })
 
-    dal_handler: DalHandler = get_dal_handler(table_name)
+    dal_handler: OrdersDalHandler = get_dal_handler(table_name)
     order: Optional[OrderEntry] = dal_handler.get_order_in_db(get_request.order_id)
     if order is not None:
         # convert from db entry to output;

@@ -1,6 +1,6 @@
 from abc import ABC, ABCMeta, abstractmethod
 
-from service.dal.schemas.db import OrderBase, OrderEntry
+from service.dal.schemas.orders_db import OrderBase, OrderEntry
 
 
 class _SingletonMeta(ABCMeta):
@@ -12,7 +12,7 @@ class _SingletonMeta(ABCMeta):
         return cls._instances[cls]
 
 
-class DalHandler(ABC, metaclass=_SingletonMeta):
+class OrdersDalHandler(ABC, metaclass=_SingletonMeta):
 
     @abstractmethod
     def create_order_in_db(self, customer_name: str, order_item_count: int) -> OrderEntry:

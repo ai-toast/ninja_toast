@@ -8,13 +8,13 @@ from mypy_boto3_dynamodb import DynamoDBServiceResource
 from mypy_boto3_dynamodb.service_resource import Table
 from pydantic import ValidationError
 
-from service.dal.db_handler import DalHandler
-from service.dal.schemas.db import OrderBase, OrderEntry
+from service.dal.db_handler import OrdersDalHandler
+from service.dal.schemas.orders_db import OrderBase, OrderEntry
 from service.handlers.utils.observability import logger, tracer
 from service.schemas.exceptions import InternalServerException
 
 
-class DynamoDalHandler(DalHandler):
+class DynamoOrdersDalHandler(OrdersDalHandler):
 
     def __init__(self, table_name: str):
         self.table_name = table_name
@@ -101,5 +101,5 @@ class DynamoDalHandler(DalHandler):
 
 
 @lru_cache
-def get_dal_handler(table_name: str) -> DalHandler:
-    return DynamoDalHandler(table_name)
+def get_dal_handler(table_name: str) -> OrdersDalHandler:
+    return DynamoOrdersDalHandler(table_name)

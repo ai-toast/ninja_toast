@@ -3,7 +3,7 @@ import uuid
 import pytest
 from aws_lambda_powertools.utilities.parser import ValidationError
 
-from service.dal.schemas.db import OrderEntry
+from service.dal.schemas.orders_db import OrderEntry
 
 order_id = str(uuid.uuid4())
 

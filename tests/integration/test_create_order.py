@@ -6,7 +6,7 @@ import boto3
 from aws_lambda_powertools.utilities.feature_flags.exceptions import SchemaValidationError
 from botocore.stub import Stubber
 
-from service.dal.dynamo_dal_handler import DynamoDalHandler
+from service.dal.dynamo_dal_handler import DynamoOrdersDalHandler
 from service.schemas.input import CreateOrderRequest
 from tests.utils import generate_api_gw_event, generate_context, generate_random_string
 
@@ -74,7 +74,7 @@ def test_handler_200_ok(mocker, table_name: str):
 
 def test_internal_server_error(mocker):
     mock_dynamic_configuration(mocker, MOCKED_SCHEMA)
-    db_handler: DynamoDalHandler = DynamoDalHandler('table')
+    db_handler: DynamoOrdersDalHandler = DynamoOrdersDalHandler('table')
     table = db_handler._get_db_handler()
     stubber = Stubber(table.meta.client)
     stubber.add_client_error(method='put_item', service_error_code='ValidationException')
@@ -83,7 +83,7 @@ def test_internal_server_error(mocker):
     response = call_create_order(generate_api_gw_event(body.model_dump()))
     stubber.deactivate()
     assert response['statusCode'] == HTTPStatus.INTERNAL_SERVER_ERROR
-    DynamoDalHandler._instances = {}
+    DynamoOrdersDalHandler._instances = {}
 
 
 def test_handler_bad_request(mocker):
