@@ -8,6 +8,7 @@ from git import Repo
 
 from cdk.service.configuration.configuration_construct import ConfigurationStore
 from cdk.service.constants import CONFIGURATION_NAME, ENVIRONMENT, SERVICE_NAME
+from cdk.service.notifications_svc_construct import NotificationServiceConstruct
 from cdk.service.orders_api_construct import OrdersApiConstruct
 from cdk.service.users_api_construct import UsersApiConstruct
 
@@ -42,6 +43,8 @@ class ServiceStack(Stack):
         self.dynamic_configuration = ConfigurationStore(self, f'{id}dynamic_conf'[0:64], ENVIRONMENT, SERVICE_NAME, CONFIGURATION_NAME)
         self.orders_api = OrdersApiConstruct(self, f'{id}_OrdersService'[0:64], self.dynamic_configuration.config_app.name)
         self.users_api = UsersApiConstruct(self, f'{id}_UsersService'[0:64], self.dynamic_configuration.config_app.name)
+        self.notification_svc = NotificationServiceConstruct(self, f'{id}_NotificationService'[0:64], self.dynamic_configuration.config_app.name,
+                                                             self.orders_api)
 
         # add security check
         self._add_security_tests()

@@ -58,5 +58,5 @@ class UserGetHandlerEnvVars(GetHandlerEnvVars):
     ...  # pragma: no cover
 
 
-class NotifyEmailHandlerEnvVars(Observability, DynamicConfiguration, Idempotency):
+class NotifyEmailHandlerEnvVars(Observability, DynamicConfiguration):
     ...  # pragma: no cover

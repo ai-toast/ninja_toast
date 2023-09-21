@@ -8,18 +8,19 @@ from aws_cdk.aws_logs import RetentionDays
 from constructs import Construct
 
 from cdk.service import constants
+from cdk.service.orders_api_construct import OrdersApiConstruct
 
 
 class NotificationServiceConstruct(Construct):
 
-    def __init__(self, scope: Construct, id: str, appconfig_app_name: str) -> None:
+    def __init__(self, scope: Construct, id: str, appconfig_app_name: str, orders_api_construct: OrdersApiConstruct) -> None:
         super().__init__(scope, id)
         self.id = id
         self.common_layer = self._build_common_layer()
         role = self._build_lambda_role()
         handler = self._order_creation_handler(role=role, appconfig_app_name=appconfig_app_name)
-        topic_name = constants.ORDERS_ORDER_CREATED_TOPIC
-        self._subscribe_to_order_creation_topic(topic_name=topic_name, handler=handler)
+        topic = orders_api_construct.order_created_topic
+        self._subscribe_to_order_creation_topic(topic=topic, handler=handler)
 
     def _build_common_layer(self) -> PythonLayerVersion:
         return PythonLayerVersion(
@@ -30,9 +31,7 @@ class NotificationServiceConstruct(Construct):
             removal_policy=RemovalPolicy.DESTROY,
         )
 
-    def _subscribe_to_order_creation_topic(self, topic_name: str, handler: _lambda.Function):
-        topic = sns.Topic(self, id='ninja_order_created_topic', topic_name=topic_name)
-
+    def _subscribe_to_order_creation_topic(self, topic: sns.Topic, handler: _lambda.Function):
         # setup lambda to listen to sns topic
         topic.add_subscription(subs.LambdaSubscription(handler))
 
