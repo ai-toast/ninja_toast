@@ -1,7 +1,9 @@
 from aws_cdk import CfnOutput, Duration, RemovalPolicy, aws_apigateway
 from aws_cdk import aws_dynamodb as dynamodb
 from aws_cdk import aws_iam as iam
+from aws_cdk import aws_kms as kms
 from aws_cdk import aws_lambda as _lambda
+from aws_cdk import aws_sns as sns
 from aws_cdk.aws_lambda_python_alpha import PythonLayerVersion
 from aws_cdk.aws_logs import RetentionDays
 from constructs import Construct
@@ -18,9 +20,15 @@ class OrdersApiConstruct(Construct):
         self.api_db = OrdersApiDbConstruct(self, f'{id_}db')
         self.lambda_role = self._build_lambda_role(self.api_db.db, self.api_db.idempotency_db)
         self.common_layer = self._build_common_layer()
+        self.sns_key = self._build_kms_managed_key(self.lambda_role)
+
+        topic_name = constants.ORDERS_ORDER_CREATED_TOPIC
+        self.order_created_topic = self._build_order_created_topic(topic_name=topic_name, role=self.lambda_role, key=self.sns_key)
+
         self.rest_api = self._build_api_gw()
         api_resource: aws_apigateway.Resource = self.rest_api.root.add_resource('api').add_resource(constants.ORDERS_GW_RESOURCE)
-        self._add_post_lambda_integration(api_resource, self.lambda_role, self.api_db.db, appconfig_app_name, self.api_db.idempotency_db)
+        self._add_post_lambda_integration(api_resource, self.lambda_role, self.api_db.db, appconfig_app_name, self.api_db.idempotency_db,
+                                          self.order_created_topic)
 
     def _build_api_gw(self) -> aws_apigateway.RestApi:
         rest_api: aws_apigateway.RestApi = aws_apigateway.RestApi(
@@ -34,6 +42,24 @@ class OrdersApiConstruct(Construct):
 
         CfnOutput(self, id=constants.ORDERS_APIGATEWAY, value=rest_api.url).override_logical_id(constants.ORDERS_APIGATEWAY)
         return rest_api
+
+    def _build_kms_managed_key(self, role: iam.Role) -> kms.Key:
+        key = kms.Key(self, 'SNSOrderCreatedKey', enable_key_rotation=True)
+        key.grant_encrypt_decrypt(role)
+        return key
+
+    def _build_order_created_topic(self, topic_name: str, role: iam.Role, key: kms.Key) -> sns.Topic:
+        sns_topic = sns.Topic(self, id='ninja_order_created_topic', topic_name=topic_name, master_key=key)
+        sns_topic.grant_publish(grantee=role)
+        sns_topic.add_to_resource_policy(
+            statement=iam.PolicyStatement(actions=['sns:Publish'], resources=[sns_topic.topic_arn], effect=iam.Effect.DENY,
+                                          principals=[iam.AnyPrincipal()], conditions={'Bool': {
+                                              'aws:SecureTransport': False
+                                          }}))
+
+        CfnOutput(self, id=constants.ORDERS_ORDER_CREATED_TOPIC_OUTPUT, value=sns_topic.topic_arn).override_logical_id(
+            constants.ORDERS_ORDER_CREATED_TOPIC_OUTPUT)  # so can be referenced in integ test conftest.py
+        return sns_topic
 
     # shared role for Create, Get, and Delete lambdas. Better to have separate for each.
     def _build_lambda_role(self, db: dynamodb.Table, idempotency_table: dynamodb.Table) -> iam.Role:
@@ -81,7 +107,8 @@ class OrdersApiConstruct(Construct):
             removal_policy=RemovalPolicy.DESTROY,
         )
 
-    def _build_create_order_lambda(self, role: iam.Role, db: dynamodb.Table, appconfig_app_name: str, idempotency_table: dynamodb.Table):
+    def _build_create_order_lambda(self, role: iam.Role, db: dynamodb.Table, appconfig_app_name: str, idempotency_table: dynamodb.Table,
+                                   topic: sns.Topic):
         lambda_function = _lambda.Function(
             self,
             constants.ORDERS_CREATE_LAMBDA,
@@ -99,6 +126,7 @@ class OrdersApiConstruct(Construct):
                 'ROLE_ARN': 'arn:partition:service:region:account-id:resource-type:resource-id',  # for env vars example
                 'TABLE_NAME': db.table_name,
                 'IDEMPOTENCY_TABLE_NAME': idempotency_table.table_name,
+                'ORDER_CREATED_TOPIC_ARN': topic.topic_arn,
             },
             tracing=_lambda.Tracing.ACTIVE,
             retry_attempts=0,
@@ -167,12 +195,12 @@ class OrdersApiConstruct(Construct):
         return lambda_function
 
     def _add_post_lambda_integration(self, api_name: aws_apigateway.Resource, role: iam.Role, db: dynamodb.Table, appconfig_app_name: str,
-                                     idempotency_table: dynamodb.Table):
+                                     idempotency_table: dynamodb.Table, order_created_topic: sns.Topic):
 
         # POST /api/orders/
         api_name.add_method(
-            http_method='POST',
-            integration=aws_apigateway.LambdaIntegration(handler=self._build_create_order_lambda(role, db, appconfig_app_name, idempotency_table)))
+            http_method='POST', integration=aws_apigateway.LambdaIntegration(
+                handler=self._build_create_order_lambda(role, db, appconfig_app_name, idempotency_table, topic=order_created_topic)))
 
         # DELETE /api/orders/
         api_name.add_method(http_method='DELETE',

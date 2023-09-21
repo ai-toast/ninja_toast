@@ -8,6 +8,8 @@ ORDERS_IDEMPOTENCY_TABLE_NAME = 'OrdersIdempotencyTable'
 ORDERS_IDEMPOTENCY_TABLE_NAME_OUTPUT = 'OrdersIdempotencyDbOutput'
 ORDERS_APIGATEWAY = 'OrdersApigateway'
 ORDERS_GW_RESOURCE = 'orders'
+ORDERS_ORDER_CREATED_TOPIC = 'NinjaOrderCreated'
+ORDERS_ORDER_CREATED_TOPIC_OUTPUT = 'NinjaOrderCreatedSnsOutput'
 
 # Users Service
 USERS_CREATE_LAMBDA = 'CreateUser'
@@ -19,6 +21,9 @@ USERS_IDEMPOTENCY_TABLE_NAME = 'UsersIdempotencyTable'
 USERS_IDEMPOTENCY_TABLE_NAME_OUTPUT = 'UsersIdempotencyDbOutput'
 USERS_APIGATEWAY = 'UsersApigateway'
 USERS_GW_RESOURCE = 'users'
+
+# Notification Service
+NOTIFY_EMAIL_LAMBDA = 'NotifyEmail'
 
 # Common Lambda
 SERVICE_ROLE_ARN = 'ServiceRoleArn'

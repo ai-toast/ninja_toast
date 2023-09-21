@@ -6,6 +6,7 @@ from cdk.service.constants import (
     CONFIGURATION_NAME,
     ENVIRONMENT,
     ORDERS_IDEMPOTENCY_TABLE_NAME_OUTPUT,
+    ORDERS_ORDER_CREATED_TOPIC_OUTPUT,
     ORDERS_TABLE_NAME_OUTPUT,
     POWER_TOOLS_LOG_LEVEL,
     POWERTOOLS_SERVICE_NAME,
@@ -27,6 +28,7 @@ def init():
     os.environ['AWS_DEFAULT_REGION'] = 'ap-southeast-2'  # us-east-1'  # used for appconfig mocked boto calls
     os.environ['TABLE_NAME'] = get_stack_output(ORDERS_TABLE_NAME_OUTPUT)
     os.environ['IDEMPOTENCY_TABLE_NAME'] = get_stack_output(ORDERS_IDEMPOTENCY_TABLE_NAME_OUTPUT)
+    os.environ['ORDER_CREATED_TOPIC_ARN'] = get_stack_output(ORDERS_ORDER_CREATED_TOPIC_OUTPUT)
 
 
 @pytest.fixture(scope='module', autouse=True)

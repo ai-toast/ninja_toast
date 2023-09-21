@@ -35,7 +35,7 @@ class GetHandlerEnvVars(DeleteHandlerEnvVars):
 
 
 class OrderCreateHandlerEnvVars(CreateHandlerEnvVars):
-    ...  # pragma: no cover
+    ORDER_CREATED_TOPIC_ARN: Annotated[str, Field(min_length=20, max_length=2048)]
 
 
 class OrderDeleteHandlerEnvVars(DeleteHandlerEnvVars):
@@ -55,4 +55,8 @@ class UserDeleteHandlerEnvVars(DeleteHandlerEnvVars):
 
 
 class UserGetHandlerEnvVars(GetHandlerEnvVars):
+    ...  # pragma: no cover
+
+
+class NotifyEmailHandlerEnvVars(Observability, DynamicConfiguration, Idempotency):
     ...  # pragma: no cover

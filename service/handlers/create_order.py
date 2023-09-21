@@ -1,6 +1,7 @@
 from http import HTTPStatus
 from typing import Any, Dict
 
+import boto3
 from aws_lambda_env_modeler import get_environment_variables, init_environment_variables
 from aws_lambda_powertools.metrics import MetricUnit
 from aws_lambda_powertools.utilities.feature_flags.exceptions import ConfigurationStoreError, SchemaValidationError
@@ -19,6 +20,8 @@ from service.logic.orders.handle_create_request import handle_create_request
 from service.schemas.exceptions import InternalServerException
 from service.schemas.input import CreateOrderRequest
 from service.schemas.output import CreateOrderOutput
+
+client = boto3.client('sns')
 
 
 @init_environment_variables(model=OrderCreateHandlerEnvVars)
@@ -57,4 +60,20 @@ def create_order(event: Dict[str, Any], context: LambdaContext) -> Dict[str, Any
         return build_response(http_status=HTTPStatus.INTERNAL_SERVER_ERROR, body={})
 
     logger.info('finished handling create order request')
+    logger.info('sending order created event messages')
+
+    topic_arn = env_vars.ORDER_CREATED_TOPIC_ARN
+    _msg_order_created(topic_arn=topic_arn, created_order=response)
+
     return build_response(http_status=HTTPStatus.OK, body=response.model_dump())
+
+
+def _msg_order_created(topic_arn: str, created_order: CreateOrderOutput):
+    msg = f"""
+Order Id: [{created_order.order_id}]
+Customer Name: [{created_order.customer_name}]
+Qty: [{created_order.order_item_count}]
+    """
+    client.publish(TopicArn=topic_arn, Subject=f'Order {created_order.order_id} created', Message=msg)
+
+    logger.info('finished messaging to topic')
