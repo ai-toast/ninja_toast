@@ -2,7 +2,7 @@
 name = "ninja_service"
 version = "3.0.0"
 description = "serverless for ninja order system"
-authors = ["Dr. Myfull Name"]
+authors = ["Ninja Toasty Seed"]
 classifiers=[
     "Development Status :: 5 - Production/Stable",
     "Intended Audience :: Developers",
