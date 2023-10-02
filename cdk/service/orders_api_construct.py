@@ -1,9 +1,12 @@
 from aws_cdk import CfnOutput, Duration, RemovalPolicy, aws_apigateway
+from aws_cdk import aws_cloudwatch as cw
+from aws_cdk import aws_cloudwatch_actions as cw_actions
 from aws_cdk import aws_dynamodb as dynamodb
 from aws_cdk import aws_iam as iam
 from aws_cdk import aws_kms as kms
 from aws_cdk import aws_lambda as _lambda
 from aws_cdk import aws_sns as sns
+from aws_cdk import aws_sns_subscriptions as sns_subs
 from aws_cdk.aws_lambda_python_alpha import PythonLayerVersion
 from aws_cdk.aws_logs import RetentionDays
 from constructs import Construct
@@ -59,6 +62,19 @@ class OrdersApiConstruct(Construct):
 
         CfnOutput(self, id=constants.ORDERS_ORDER_CREATED_TOPIC_OUTPUT, value=sns_topic.topic_arn).override_logical_id(
             constants.ORDERS_ORDER_CREATED_TOPIC_OUTPUT)  # so can be referenced in integ test conftest.py
+        return sns_topic
+
+    def _build_delayed_order_create_email_topic(self, topic_name: str, role: iam.Role, key: kms.Key) -> sns.Topic:
+        sns_topic = sns.Topic(self, id='ninja_delayed_order_create_email_topic', topic_name=topic_name, master_key=key)
+        sns_topic.grant_publish(grantee=role)
+        sns_topic.add_to_resource_policy(
+            statement=iam.PolicyStatement(actions=['sns:Publish'], resources=[sns_topic.topic_arn], effect=iam.Effect.DENY,
+                                          principals=[iam.AnyPrincipal()], conditions={'Bool': {
+                                              'aws:SecureTransport': False
+                                          }}))
+
+        CfnOutput(self, id=constants.ORDERS_DELAYED_ORDER_CREATE_EMAIL_TOPIC_OUTPUT, value=sns_topic.topic_arn).override_logical_id(
+            constants.ORDERS_DELAYED_ORDER_CREATE_EMAIL_TOPIC_OUTPUT)  # so can be referenced in integ test conftest.py
         return sns_topic
 
     # shared role for Create, Get, and Delete lambdas. Better to have separate for each.
@@ -136,6 +152,7 @@ class OrdersApiConstruct(Construct):
             role=role,
             log_retention=RetentionDays.ONE_DAY,
         )
+        self._build_late_order_creation_alarm(lambda_function.function_name)
         return lambda_function
 
     def _build_delete_order_lambda(self, role: iam.Role, db: dynamodb.Table, appconfig_app_name: str):
@@ -209,3 +226,24 @@ class OrdersApiConstruct(Construct):
         # GET /api/orders/
         api_name.add_method(http_method='GET',
                             integration=aws_apigateway.LambdaIntegration(handler=self._build_get_order_lambda(role, db, appconfig_app_name)))
+
+    def _build_late_order_creation_alarm(self, lambda_function_name: str):
+        # create a cloudwatch alarm for create order events taking longer than 1 minute
+        duration_metric = cw.Metric(namespace='AWS/Lambda', metric_name='Duration', statistic='Maximum',
+                                    dimensions_map={'FunctionName': lambda_function_name}, period=Duration.minutes(1))
+        delayed_order_create_alarm = cw.Alarm(
+            self,
+            'DelayedOrderCreateAlarm',
+            metric=duration_metric,
+            threshold=60_000,  # 60k ms = 1 minute
+            comparison_operator=cw.ComparisonOperator.GREATER_THAN_OR_EQUAL_TO_THRESHOLD,
+            evaluation_periods=1,
+            treat_missing_data=cw.TreatMissingData.NOT_BREACHING)
+
+        # alarm_email_topic = sns.Topic(self, 'AlarmEmail', topic_name='delayed-order-create-alarm')
+        alarm_email_topic = self._build_delayed_order_create_email_topic(topic_name='delayed-order-create-alarm', role=self.lambda_role,
+                                                                         key=self.sns_key)
+        alarm_email_topic.add_subscription(sns_subs.EmailSubscription(constants.ORDERS_DELAYED_ORDER_CREATE_ALARM_EMAIL_ADDRESS))
+        delayed_order_create_alarm.add_alarm_action(cw_actions.SnsAction(alarm_email_topic))
+
+        return delayed_order_create_alarm

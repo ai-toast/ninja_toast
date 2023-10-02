@@ -10,6 +10,8 @@ ORDERS_APIGATEWAY = 'OrdersApigateway'
 ORDERS_GW_RESOURCE = 'orders'
 ORDERS_ORDER_CREATED_TOPIC = 'NinjaOrderCreated'
 ORDERS_ORDER_CREATED_TOPIC_OUTPUT = 'NinjaOrderCreatedSnsOutput'
+ORDERS_DELAYED_ORDER_CREATE_ALARM_EMAIL_ADDRESS = 'nobody@example.com'
+ORDERS_DELAYED_ORDER_CREATE_EMAIL_TOPIC_OUTPUT = 'NinjaDelayedOrderCreateEmailTopicOutput'
 
 # Users Service
 USERS_CREATE_LAMBDA = 'CreateUser'
