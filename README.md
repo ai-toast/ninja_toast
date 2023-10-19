@@ -1,4 +1,4 @@
-# Ninja order service
+# Ninja Order service
 
 This is a ninja ordering service implemented with AWS Serverless.
 
