@@ -1,0 +1,60 @@
+{
+   "correlation_id" : "434b4f08-b0b8-4739-b29e-737abdb5e69f",
+   "event" : {
+      "body" : "{\n \"customer_name\": \"kk\",\n \"order_item_count\": 5\n}",
+      "headers" : {
+         "[]" : ""
+      },
+      "httpMethod" : "POST",
+      "isBase64Encoded" : false,
+      "multiValueHeaders" : {
+         "[]" : [
+            ""
+         ]
+      },
+      "multiValueQueryStringParameters" : null,
+      "path" : "/api/orders",
+      "pathParameters" : null,
+      "queryStringParameters" : null,
+      "requestContext" : {
+         "accountId" : "868283809734",
+         "apiId" : "f3il06hfmk",
+         "domainName" : "testPrefix.testDomainName",
+         "domainPrefix" : "testPrefix",
+         "extendedRequestId" : "LYKEMHuoSwMFdTw=",
+         "httpMethod" : "POST",
+         "identity" : {
+            "accessKey" : "ASIA4UKN7P7DD3BSHYNO",
+            "accountId" : "868283809734",
+            "apiKey" : "test-invoke-api-key",
+            "apiKeyId" : "test-invoke-api-key-id",
+            "caller" : "AROA4UKN7P7DJCPONP47Q:wwh",
+            "cognitoAuthenticationProvider" : null,
+            "cognitoAuthenticationType" : null,
+            "cognitoIdentityId" : null,
+            "cognitoIdentityPoolId" : null,
+            "principalOrgId" : null,
+            "sourceIp" : "test-invoke-source-ip",
+            "user" : "AROA4UKN7P7DJCPONP47Q:wwh",
+            "userAgent" : "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/117.0",
+            "userArn" : "arn:aws:sts::868283809734:assumed-role/AWSReservedSSO_PowerUserAccess_4621a1aa13083bd7/wwh"
+         },
+         "path" : "/api/orders",
+         "protocol" : "HTTP/1.1",
+         "requestId" : "760a86a3-04dd-4e3c-8245-ad362e220c4f",
+         "requestTime" : "17/Sep/2023:01:31:19 +0000",
+         "requestTimeEpoch" : 1694914279324,
+         "resourceId" : "tgp3uo",
+         "resourcePath" : "/api/orders",
+         "stage" : "test-invoke-stage"
+      },
+      "resource" : "/api/orders",
+      "stageVariables" : null
+   },
+   "level" : "DEBUG",
+   "location" : "create_order:42",
+   "message" : "event from apigw",
+   "service" : "UsersService",
+   "timestamp" : "2023-09-17 01:31:22,970+0000",
+   "xray_trace_id" : "1-650656e7-133fde41d6c6314cf69dee4e"
+}
