@@ -28,7 +28,7 @@ jobs:
         with:
           python-version: "3.11"
       - name: Set up Node
-        uses: actions/setup-node@bea5baf987ba7aa777a8a0b4ace377a21c45c381 # v3.8.0
+        uses: actions/setup-node@8f152de45cc393bb48ce5d89d36b731f54556e65 # v4.0.0
         with:
           node-version: "18"
       - name: Install dependencies
